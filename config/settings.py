@@ -38,7 +38,9 @@ THIRD_APPS = [
     'rest_framework_simplejwt',
 ]
 
-MY_APPS = []
+MY_APPS = [
+    'users',
+]
 
 INSTALLED_APPS = DJANGO_DEFAULT_APPS + THIRD_APPS + MY_APPS
 
