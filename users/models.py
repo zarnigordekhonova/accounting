@@ -5,6 +5,7 @@ from django.db import models
 # Create your models here.
 class PasswordResets(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    reset_code = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.BooleanField(default=True)
 

@@ -15,3 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = ('username', 'email', 'password')
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
