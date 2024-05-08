@@ -13,6 +13,6 @@ router.register(r'profile', ProfileUpdateView, basename='profile')
 
 urlpatterns = [
     path('register/', RegisterAPIView.as_view(), name="register"),
-    path('password_change/', password_change_view, name="password_change"),
-    path('password_reset/', password_reset_view, name="password_reset"),
+    path('password-change/', password_change_view, name="password-change"),
+    path('password-reset/', password_reset_view, name="password-reset"),
 ] + router.urls

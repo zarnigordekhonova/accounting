@@ -20,9 +20,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = get_user_model()
-        fields = ('first_name', 'last_name', 'email')
-
-
-class PasswordResetSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+        model = UserModel
+        fields = ('id', 'first_name', 'last_name', 'email', 'date_joined', 'last_login')
+        read_only_fields = ('date_joined', 'last_login')
