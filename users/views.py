@@ -1,136 +1,146 @@
-from datetime import datetime
-from random import randint
-
-from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from django.contrib.auth import get_user_model
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import viewsets, generics
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .models import Branches, CustomUser, UserRoles, Roles, PasswordReset
+from .serializers import (BranchesViewSerializer, CustomTokenObtainPairSerializer, UserRolesWriteSerializer, UserRolesReadSerializer, UserListSerializer,
+                          RolesViewSerializer, PasswordResetRequestSerializer, PasswordResetSerializer, UserRegisterSerializer, UserProfileUpdateSerializer,
+                          UserUpdateSerializer)
 
-from config import settings
-from .models import PasswordResets
-from .permissions import IsOwnerOrSuperUser
-from .serializers import UserSerializer, ProfileSerializer
+User = get_user_model()
 
-
-class RegisterAPIView(CreateAPIView):
-    serializer_class = UserSerializer
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
-class ProfileUpdateView(ModelViewSet):
-    queryset = get_user_model().objects.all()
-    http_method_names = ['put', 'patch', 'delete', 'get']
-    serializer_class = ProfileSerializer
-    permission_classes = (IsOwnerOrSuperUser,)
+class BranchesViewSet(viewsets.ModelViewSet):
+    queryset = Branches.objects.all()
+    serializer_class = BranchesViewSerializer
+    permission_classes = [IsAuthenticated]
 
 
-@api_view(['POST'])
-def password_change_view(request):
-    try:
-        old_password = request.data['old_password']
-        new_password = request.data['new_password']
-    except KeyError:
-        return Response(
-            data={'message': 'Old password or new password is missing'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    user = request.user
-    if user.check_password(old_password):
-        user.set_password(new_password)
-        user.save()
-        return Response(
-            data={'message': 'Your password successfully changed!'},
-            status=status.HTTP_200_OK
-        )
-    else:
-        return Response(
-            data={'message': 'Old password entered wrong!'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+class RolesViewSet(viewsets.ModelViewSet):
+    queryset = Roles.objects.all()
+    serializer_class = RolesViewSerializer
+    permission_classes = [IsAuthenticated]
 
 
-@api_view(['GET', 'POST'])
-def password_reset_view(request):
-    if request.method == 'POST':
-        try:
-            reset_code = request.data['code']
-            new_password = request.data['new_password']
-        except KeyError:
-            return Response(
-                data={'message': 'code or new password is missing'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            reset_user = PasswordResets.objects.get(reset_code=reset_code)
-            if reset_user.status:
-                if datetime.now().timestamp() - reset_user.created_at.timestamp() > 600:
-                    # return time out error if code sent more than 10 minutes ago
-                    return Response(
-                        data={'message': 'Code time out'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-            else:
-                return Response(
-                    data={'message': 'Password already reset with this code'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        except:
-            return Response(
-                data={'message': 'Code invalid!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            user = get_user_model().objects.get(pk=int(reset_user.user_id))
-            PasswordResets.objects.filter(reset_code=reset_code).update(status=False)
-            user.set_password(new_password)
-            user.save()
-            return Response(
-                data={'message': 'Your password successfully reset!'},
-                status=status.HTTP_200_OK
-            )
-        except Exception as e:
-            return Response(
-                {'message': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    elif request.method == 'GET':
-        try:
-            email = request.data['email']
-        except KeyError:
-            return Response(
-                data={'message': 'Email is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        user = get_user_model().objects.filter(email=email).first()
-        if user:
-            reset_code = f"{randint(100, 999)}-{randint(100, 999)}"
+class RegisterAPIView(generics.CreateAPIView):
+    serializer_class = UserRegisterSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = UserRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            context = {
+                "success": True,
+                "message": "User created successfully",
+                "data": serializer.data
+            }
+            return Response(context, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserProfileUpdateSerializer
+    queryset = CustomUser.objects.all()
+    permission_classes = [IsAuthenticated]
+
+
+class UserListAPIView(generics.ListAPIView):
+    serializer_class = UserListSerializer
+    queryset = CustomUser.objects.all()
+    permission_classes = [IsAuthenticated]
+
+
+class UserRetrieveAPIView(generics.ListAPIView):
+    serializer_class = UserListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CustomUser.objects.filter(id=user.id)
+        return queryset
+
+
+class UserUpdateView(generics.UpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    queryset = CustomUser.objects.all()
+    permission_classes = [IsAuthenticated]
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
             try:
-                reset_request = PasswordResets.objects.create(user=user, reset_code=reset_code)
-                reset_request.save()
-                send_mail(
-                    subject='Password Reset Request',
-                    from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[email],
-                    message=f'Please, insert this code to reset your password: {reset_code}!\n\n'
-                            f'Code will expire in 10 minutes.',
-                )
-                return Response(
-                    data={'message': 'Code for reset your password sent to your email, check your email, please!'},
-                    status=status.HTTP_200_OK
-                )
-            except Exception as e:
-                # print(e)
-                return Response(
-                    data={'message': 'An internal server error, try again please!'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-        else:
-            return Response(
-                data={'message': 'User with this email not found!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                user = User.objects.get(username=username)
+                exist = PasswordReset.objects.filter(username=user).exists()
+                if exist:
+                    encoded_username = urlsafe_base64_encode(username.encode())
+                    reset_link = f"/password-reset/{encoded_username}/"
+                    return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
+                PasswordReset.objects.create(username=user)
+                encoded_username = urlsafe_base64_encode(username.encode())
+                reset_link = f"/password-reset/{encoded_username}/"
+                return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, encoded_username):
+        try:
+            username = urlsafe_base64_decode(encoded_username).decode()
+            reset_request = PasswordReset.objects.filter(username__username=username, clicked=False)
+
+            if not reset_request.exists():
+                return Response({"status": "Invalid", "error": "Password reset request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+            reset_request = reset_request.first()
+            reset_request.clicked = True
+            reset_request.save()
+
+            return Response({"status": "Valid"}, status=status.HTTP_200_OK)
+        except ValueError:
+            return Response({"status": "Invalid", "error": "Invalid encoded username."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, encoded_username):
+        serializer = PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                username = urlsafe_base64_decode(encoded_username).decode()
+                reset_request = PasswordReset.objects.filter(username__username=username, clicked=True).first()
+
+                if not reset_request:
+                    return Response({"status": "Invalid", "error": "Password reset request does not exist or has already been used."}, status=status.HTTP_400_BAD_REQUEST)
+
+                user = CustomUser.objects.get(username=username)
+                user.set_password(serializer.validated_data['password'])
+                user.save()
+                reset_request.delete()
+                return Response({"status": "Password reset"}, status=status.HTTP_200_OK)
+            except (CustomUser.DoesNotExist, ValueError):
+                return Response({"error": "Invalid reset link"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+class UserRolesView(viewsets.ModelViewSet):
+    queryset = UserRoles.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            return UserRolesWriteSerializer
+        return UserRolesReadSerializer
+
