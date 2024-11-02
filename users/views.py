@@ -70,7 +70,7 @@ class UserUpdateView(generics.UpdateAPIView):
 
 
 class PasswordResetRequestView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
@@ -78,12 +78,13 @@ class PasswordResetRequestView(APIView):
             username = serializer.validated_data['username']
             try:
                 user = User.objects.get(username=username)
-                exist = PasswordReset.objects.filter(username=user).exists()
-                if exist:
+                reset_request = PasswordReset.objects.filter(username=user, clicked=False).first()
+                if reset_request:
                     encoded_username = urlsafe_base64_encode(username.encode())
                     reset_link = f"/password-reset/{encoded_username}/"
                     return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
-                PasswordReset.objects.create(username=user)
+
+                reset_request = PasswordReset.objects.create(username=user, clicked=False)
                 encoded_username = urlsafe_base64_encode(username.encode())
                 reset_link = f"/password-reset/{encoded_username}/"
                 return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
@@ -98,15 +99,12 @@ class PasswordResetView(APIView):
     def get(self, request, encoded_username):
         try:
             username = urlsafe_base64_decode(encoded_username).decode()
-            reset_request = PasswordReset.objects.filter(username__username=username, clicked=False)
-
-            if not reset_request.exists():
+            reset_request = PasswordReset.objects.filter(username__username=username, clicked=False).first()
+            if not reset_request:
                 return Response({"status": "Invalid", "error": "Password reset request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
-            reset_request = reset_request.first()
             reset_request.clicked = True
             reset_request.save()
-
             return Response({"status": "Valid"}, status=status.HTTP_200_OK)
         except ValueError:
             return Response({"status": "Invalid", "error": "Invalid encoded username."}, status=status.HTTP_400_BAD_REQUEST)
@@ -117,14 +115,13 @@ class PasswordResetView(APIView):
             try:
                 username = urlsafe_base64_decode(encoded_username).decode()
                 reset_request = PasswordReset.objects.filter(username__username=username, clicked=True).first()
-
                 if not reset_request:
                     return Response({"status": "Invalid", "error": "Password reset request does not exist or has already been used."}, status=status.HTTP_400_BAD_REQUEST)
-
                 user = CustomUser.objects.get(username=username)
                 user.set_password(serializer.validated_data['password'])
                 user.save()
-                reset_request.delete()
+                reset_request.clicked = True
+                reset_request.save()
                 return Response({"status": "Password reset"}, status=status.HTTP_200_OK)
             except (CustomUser.DoesNotExist, ValueError):
                 return Response({"error": "Invalid reset link"}, status=status.HTTP_400_BAD_REQUEST)
