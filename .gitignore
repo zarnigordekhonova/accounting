@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 env
 venv
 __pycache__
 .env
 idea
 .idea
+=======
+venv
+env
+__pycache__
+.env
+>>>>>>> c3491808b0b7dcce093f2e93a9f32d91220fc1e6

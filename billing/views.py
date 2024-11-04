@@ -5,10 +5,10 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from fleet.views import CustomPagination
 from .models import (Facility, FacilityHistory, Broker, BrokerHistory, LoadProcess,
-                     Status, Load, LoadHistory, LoadFile)
+                     Status, Load, LoadHistory, LoadFile, LoadStop)
 from .serializers import (BrokersSerializer, BrokerHistoryViewSerializer,
-                          BrokerHistoryWriteSerializer, FacilitySerializer, FacilityHistoryViewSerializer, FacilityHistoryWriteSerializer,
-                          LoadProcessesSerializer, StatusesViewSerializer, StatusesWriteSerializer, LoadsViewSerializer, LoadUseSerializer,
+                          BrokerHistoryWriteSerializer, FacilitySerializer, FacilityHistoryViewSerializer, FacilityHistoryWriteSerializer, LoadStopViewSerializer,
+                          LoadProcessesSerializer, StatusesViewSerializer, StatusesWriteSerializer, LoadsViewSerializer, LoadUseSerializer, LoadStopWriteSerializer,
                           LoadsWriteSerializer, LoadHistoryViewSerializer, LoadHistoryWriteSerializer, LoadFilesViewSerializer, LoadFilesWriteSerializer)
 from fleet.permissions import IsAdminUser, IsBilling, IsDispatch, IsDispatchManager, IsUpdater
 
@@ -256,6 +256,22 @@ class LoadFilesViewSet(viewsets.ModelViewSet):
         if self.request.method in ['POST', 'PUT', 'PATCH']:
             return LoadFilesWriteSerializer
         return LoadFilesViewSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdminUser | IsDispatch | IsDispatchManager | IsUpdater | IsBilling]
+        return [permission() for permission in permission_classes]
+
+
+class LoadStopsViewSet(viewsets.ModelViewSet):
+    queryset = LoadStop.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PUT', 'PATCH']:
+            return LoadStopWriteSerializer
+        return LoadStopViewSerializer
 
     def get_permissions(self):
         if self.request.method == 'GET':

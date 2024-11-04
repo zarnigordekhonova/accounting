@@ -1,7 +1,6 @@
-
 from rest_framework import serializers
 from .models import (Facility, FacilityHistory, Broker, BrokerHistory, LoadProcess,
-                     Status, Load, LoadHistory, LoadFile)
+                     Status, Load, LoadHistory, LoadFile, LoadStop)
 
 
 
@@ -115,7 +114,6 @@ class LoadsViewSerializer(serializers.ModelSerializer):
     booked_by = serializers.SerializerMethodField(method_name='get_booked_by')
     created_by = serializers.SerializerMethodField(method_name='get_created_by')
     from_facility = serializers.SerializerMethodField(method_name='get_from_facility')
-    to_facility = serializers.SerializerMethodField(method_name='get_to_facility')
     broker = serializers.SerializerMethodField(method_name='get_broker')
     driver = serializers.SerializerMethodField(method_name='get_driver')
     process = LoadProcessesSerializer()
@@ -148,15 +146,6 @@ class LoadsViewSerializer(serializers.ModelSerializer):
                 "id": obj.from_facility.id,
                 "name": obj.from_facility.name,
                 "address": obj.from_facility.address
-            }
-        return None
-
-    def get_to_facility(self, obj):
-        if obj.to_facility:
-            return {
-                "id": obj.to_facility.id,
-                "name": obj.to_facility.name,
-                "address": obj.to_facility.address
             }
         return None
 
@@ -256,7 +245,6 @@ class LoadUseSerializer(serializers.ModelSerializer):
     booked_by = serializers.SerializerMethodField(method_name='get_booked_by')
     created_by = serializers.SerializerMethodField(method_name='get_created_by')
     from_facility = serializers.SerializerMethodField(method_name='get_from_facility')
-    to_facility = serializers.SerializerMethodField(method_name='get_to_facility')
     broker = serializers.SerializerMethodField(method_name='get_broker')
     driver = serializers.SerializerMethodField(method_name='get_driver')
     process = serializers.SerializerMethodField(method_name='get_process')
@@ -274,9 +262,6 @@ class LoadUseSerializer(serializers.ModelSerializer):
     def get_from_facility(self, obj):
         return obj.from_facility.name if obj.from_facility else None
 
-    def get_to_facility(self, obj):
-        return obj.to_facility.name if obj.to_facility else None
-
     def get_broker(self, obj):
         return obj.broker.name if obj.broker else None
 
@@ -285,3 +270,43 @@ class LoadUseSerializer(serializers.ModelSerializer):
 
     def get_process(self, obj):
         return obj.process.name if obj.process else None
+
+
+class LoadStopViewSerializer(serializers.ModelSerializer):
+    facility = serializers.SerializerMethodField(method_name='get_facility')
+    load  = serializers.SerializerMethodField(method_name='get_load')
+
+    class Meta:
+        model = LoadStop
+        fields = '__all__'
+
+    def get_facility(self, obj):
+        if obj.facility:
+            return {
+                'id': obj.facility.id,
+                'name': obj.facility.name,
+                'address': obj.facility.address
+            }
+        return None
+
+    def get_load(self, obj):
+        if obj.load:
+            return {
+                "id": obj.load.id,
+                "carrier": obj.load.carrier,
+                "driver": obj.load.driver.full_name
+            }
+        return None
+
+
+class LoadStopWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoadStop
+        fields = '__all__'
+
+    def validate(self, data):
+        if data.get('destination'):
+            load_id = data.get('load').id if data.get('load') else None
+            if LoadStop.objects.filter(load_id=load_id, destination=True).exists():
+                raise serializers.ValidationError("Only one LoadStop per Load can have destination set to True.")
+        return data

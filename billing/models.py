@@ -116,7 +116,6 @@ class Load(models.Model):
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='created_by')
     broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
     from_facility = models.ForeignKey(Facility, on_delete=models.CASCADE, related_name='from_facility')
-    to_facility = models.ForeignKey(Facility, on_delete=models.CASCADE, related_name='to_facility')
     shipment = models.CharField(max_length=100)
     load_number = models.CharField(max_length=100)
     total_amount = models.DecimalField(max_digits=20, decimal_places=2)
@@ -167,3 +166,21 @@ class LoadFile(models.Model):
         db_table = 'load_files'
         verbose_name = 'Load File'
         verbose_name_plural = 'Load Files'
+
+
+class LoadStop(models.Model):
+    load = models.ForeignKey(Load, on_delete=models.CASCADE)
+    facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
+    order = models.IntegerField()
+    destination = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.load.carrier
+
+    class Meta:
+        db_table = 'load_stops'
+        verbose_name = 'Load Stop'
+        verbose_name_plural = 'Load Stops'
+        unique_together = ('load', 'order')
