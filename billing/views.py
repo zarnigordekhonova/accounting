@@ -86,7 +86,7 @@ class FacilitiesViewSet(viewsets.ModelViewSet):
             new_value = getattr(updated_facility, field)
             if old_value != new_value:
                 changes.append(f"{field.capitalize()}: {old_value} -> {new_value}")
-        description = "Facility updated. " + " | ".join(changes) if changes else "No significant changes made."
+        description = "Facility updated | " + " | ".join(changes) if changes else "No significant changes made."
         FacilityHistory.objects.create(
             facility=facility,
             changed_by=self.request.user,
@@ -126,7 +126,7 @@ class BrokersViewSet(viewsets.ModelViewSet):
             new_value = getattr(updated_broker, field)
             if old_value != new_value:
                 changes.append(f"{field.capitalize()}: {old_value} -> {new_value}")
-        description = "Broker updated. " + " | ".join(changes) if changes else "No significant changes made."
+        description = "Broker updated | " + " | ".join(changes) if changes else "No significant changes made."
         BrokerHistory.objects.create(
             broker=broker,
             changed_by=self.request.user,
@@ -193,7 +193,7 @@ class LoadsViewSet(viewsets.ModelViewSet):
             if str(old_value) != str(new_value):
                 changes.append(f"{field.replace('_', ' ').title()}: {old_value} -> {new_value}")
 
-        description = "Load updated. " + " | ".join(changes) if changes else "No significant changes made."
+        description = "Load updated | " + " | ".join(changes) if changes else "No significant changes made."
         LoadHistory.objects.create(
             load=load,
             changed_by=self.request.user,
