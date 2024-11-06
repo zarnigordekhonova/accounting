@@ -168,7 +168,6 @@ class LoadsViewSet(viewsets.ModelViewSet):
             'booked_by': lambda obj: obj.booked_by.username if obj.booked_by else None,
             'created_by': lambda obj: obj.created_by.username if obj.created_by else None,
             'from_facility': lambda obj: obj.from_facility.name if obj.from_facility else None,
-            'to_facility': lambda obj: obj.to_facility.name if obj.to_facility else None,
             'broker': lambda obj: obj.broker.name if obj.broker else None,
             'driver': lambda obj: obj.driver.full_name if obj.driver else None,
             'process': lambda obj: obj.process.name if obj.process else None,
@@ -279,3 +278,31 @@ class LoadStopsViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAdminUser | IsDispatch | IsDispatchManager | IsUpdater | IsBilling]
         return [permission() for permission in permission_classes]
+
+
+class BrokerByIdAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BrokerHistoryViewSerializer
+
+    def get_queryset(self):
+        broker = self.kwargs.get('pk')
+        return BrokerHistory.objects.filter(broker=broker)
+
+
+class FacilityByIdAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FacilityHistoryViewSerializer
+
+    def get_queryset(self):
+        facility = self.kwargs.get('pk')
+        return FacilityHistory.objects.filter(facility=facility)
+
+
+class LoadByIdAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LoadHistoryViewSerializer
+
+    def get_queryset(self):
+        load = self.kwargs.get('pk')
+        return LoadHistory.objects.filter(load=load)
+
