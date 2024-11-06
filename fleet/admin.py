@@ -1,7 +1,20 @@
 from django.contrib import admin
-from .models import Company, CustomUser, Department, UserStatus
+from .models import (UserStatus, CustomUser, Department, Company, Recruiter, DriverStatus, Driver, DriverType,
+                     Make, Models, TruckStatus, VehicleType, LessorCompany, CarrierType, Truck, TruckDriver)
 
 admin.site.register(Company)
 admin.site.register(Department)
 admin.site.register(UserStatus)
 admin.site.register(CustomUser)
+admin.site.register(Recruiter)
+admin.site.register(DriverStatus)
+admin.site.register(Driver)
+admin.site.register(DriverType)
+admin.site.register(Make)
+admin.site.register(Models)
+admin.site.register(Truck)
+admin.site.register(TruckDriver)
+admin.site.register(TruckStatus)
+admin.site.register(VehicleType)
+admin.site.register(LessorCompany)
+admin.site.register(CarrierType)

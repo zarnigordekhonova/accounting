@@ -1,7 +1,7 @@
 from django.db import models
 from fleet.models import CustomUser, Driver
 
-# Create your models here.
+
 class Facility(models.Model):
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=200)

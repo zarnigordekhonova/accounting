@@ -3,7 +3,6 @@ from .models import (Facility, FacilityHistory, Broker, BrokerHistory, LoadProce
                      Status, Load, LoadHistory, LoadFile, LoadStop)
 
 
-
 class BrokersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Broker

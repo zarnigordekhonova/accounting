@@ -5,8 +5,6 @@ from django.contrib.auth.password_validation import validate_password
 from .models import (UserStatus, Company, Department, CustomUser, Recruiter, DriverType, DriverStatus, Driver, Make, Models,
                      TruckStatus, LessorCompany, VehicleType, CarrierType, Truck, TruckDriver)
 
-
-
 User = get_user_model()
 
 
@@ -206,7 +204,7 @@ class TrucksViewSerializer(serializers.ModelSerializer):
     carrier_company = CompanyUseSerializer()
 
     def get_driver(self, obj):
-        drivers = TruckDrivers.objects.filter(truck=obj)
+        drivers = TruckDriver.objects.filter(truck=obj)
         return [{"id": driver.driver.id, "name": driver.driver.full_name, "truck_driver_id": driver.id} for driver in drivers]
 
     def get_model(self, obj):
@@ -227,7 +225,6 @@ class TrucksWriteSerializer(serializers.ModelSerializer):
         if not is_valid_vin(value):
             raise serializers.ValidationError("Invalid VIN number. The VIN must be exactly 17 characters long and can only contain valid characters.")
         return value
-
 
 
 class TruckSerializer(serializers.ModelSerializer):

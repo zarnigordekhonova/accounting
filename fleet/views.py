@@ -5,22 +5,21 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from django.utils import timezone
-from rest_framework import serializers
-from django.db.models import Case, When, IntegerField, Value, F, Window
+from django.db.models import Case, When, IntegerField, F, Window
 from django.db.models.functions import RowNumber
 from .models import (UserStatus, CustomUser, Department, Company, Recruiter, DriverStatus, Driver, DriverType,
                      Make, Models, TruckStatus, VehicleType, LessorCompany, CarrierType, Truck, TruckDriver)
-from .serializers import (UserStatusSerializer, CompanyWriteSerializer, CompanyUseSerializer, CompanyReadSerializer, DepartmentSerializer,
-                          UserProfileUpdateSerializer, UserUpdateSerializer, UserListSerializer, DriverStatusSerializer, RecruiterSerializer,
-                          DriverTypeSerializer, CompanyViewSerializer, DriverViewSerializer, DriverWriteSerializer, ActiveDrivers,
-                          MakesSerializer, TruckStatusSerializer, ModelsViewSerializer, ModelsWriteSerializer, ModelsUseSerializer, LessorCompanyViewSerializer,
-                          VehicleTypeViewSerializer, CarrierTypeViewSerializer, TrucksViewSerializer, TrucksWriteSerializer, TruckSerializer, TruckDriversWriteSerializer,
-                          TruckDriversViewSerializer, TruckDriverSerializer, CustomTokenObtainPairSerializer)
-from .permissions import IsHiring, IsFleet, IsAdminUser, ExcludeDispatchOrELD, IsSafety, IsMaintenance
+from .serializers import (UserStatusSerializer, CompanyWriteSerializer, CompanyReadSerializer, DepartmentSerializer,
+                          UserProfileUpdateSerializer, UserUpdateSerializer, UserListSerializer, DriverStatusSerializer,
+                          RecruiterSerializer, DriverTypeSerializer, DriverViewSerializer, DriverWriteSerializer,
+                          ActiveDrivers, MakesSerializer, TruckStatusSerializer, LessorCompanyViewSerializer,
+                          TruckDriversWriteSerializer, VehicleTypeViewSerializer, CarrierTypeViewSerializer,
+                          TrucksViewSerializer, TrucksWriteSerializer, TruckDriversViewSerializer,
+                          TruckDriverSerializer, CustomTokenObtainPairSerializer)
+from .permissions import IsHiring, IsFleet, IsAdminUser, IsSafety, IsMaintenance
 
 User = get_user_model()
 

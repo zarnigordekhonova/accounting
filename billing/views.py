@@ -7,10 +7,14 @@ from fleet.views import CustomPagination
 from .models import (Facility, FacilityHistory, Broker, BrokerHistory, LoadProcess,
                      Status, Load, LoadHistory, LoadFile, LoadStop)
 from .serializers import (BrokersSerializer, BrokerHistoryViewSerializer,
-                          BrokerHistoryWriteSerializer, FacilitySerializer, FacilityHistoryViewSerializer, FacilityHistoryWriteSerializer, LoadStopViewSerializer,
-                          LoadProcessesSerializer, StatusesViewSerializer, StatusesWriteSerializer, LoadsViewSerializer, LoadUseSerializer, LoadStopWriteSerializer,
-                          LoadsWriteSerializer, LoadHistoryViewSerializer, LoadHistoryWriteSerializer, LoadFilesViewSerializer, LoadFilesWriteSerializer)
+                          BrokerHistoryWriteSerializer, FacilitySerializer, FacilityHistoryViewSerializer,
+                          FacilityHistoryWriteSerializer, LoadStopViewSerializer,
+                          LoadProcessesSerializer, StatusesViewSerializer, StatusesWriteSerializer, LoadsViewSerializer,
+                          LoadUseSerializer, LoadStopWriteSerializer,
+                          LoadsWriteSerializer, LoadHistoryViewSerializer, LoadHistoryWriteSerializer,
+                          LoadFilesViewSerializer, LoadFilesWriteSerializer)
 from fleet.permissions import IsAdminUser, IsBilling, IsDispatch, IsDispatchManager, IsUpdater
+
 
 class BrokerHistoryViewSet(viewsets.ModelViewSet):
     queryset = BrokerHistory.objects.all()
@@ -305,4 +309,3 @@ class LoadByIdAPIView(generics.ListAPIView):
     def get_queryset(self):
         load = self.kwargs.get('pk')
         return LoadHistory.objects.filter(load=load)
-
