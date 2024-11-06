@@ -309,10 +309,7 @@ class TrucksRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            if self.request.user.department.name.lower() in ['hiring', 'maintenance']:
-                return TrucksWriteSerializer
-            else:
-                return TrucksWriteSerializer
+            return TrucksWriteSerializer
         return TrucksViewSerializer
 
 
