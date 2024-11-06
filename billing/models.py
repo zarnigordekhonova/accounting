@@ -113,7 +113,7 @@ class Load(models.Model):
     carrier = models.CharField(max_length=100)
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
     booked_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='booked_by')
-    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='created_by')
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='created_by', null=True, blank=True)
     broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
     from_facility = models.ForeignKey(Facility, on_delete=models.CASCADE, related_name='from_facility')
     shipment = models.CharField(max_length=100)

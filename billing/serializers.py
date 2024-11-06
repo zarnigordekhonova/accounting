@@ -180,7 +180,7 @@ class LoadsWriteSerializer(serializers.ModelSerializer):
         if 'process' not in validated_data:
             pending_process = LoadProcess.objects.get(name='Pending')
             validated_data['process'] = pending_process
-
+        validated_data['created_by'] = self.context['request'].user
         return super().create(validated_data)
 
 
@@ -273,7 +273,7 @@ class LoadUseSerializer(serializers.ModelSerializer):
 
 class LoadStopViewSerializer(serializers.ModelSerializer):
     facility = serializers.SerializerMethodField(method_name='get_facility')
-    load  = serializers.SerializerMethodField(method_name='get_load')
+    load = serializers.SerializerMethodField(method_name='get_load')
 
     class Meta:
         model = LoadStop
