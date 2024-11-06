@@ -10,7 +10,7 @@ class UserStatus(models.Model):
         return self.name
 
     class Meta:
-        verbose_name_plural = "Statuses"
+        verbose_name_plural = " User Statuses"
         verbose_name = "Status"
         db_table = "user_statuses"
         ordering = ['id']
@@ -92,7 +92,7 @@ class DriverStatus(models.Model):
 
     class Meta:
         ordering = ['id']
-        verbose_name_plural = "Statuses"
+        verbose_name_plural = " Driver Statuses"
         db_table = "driver_statuses"
 
 
@@ -147,7 +147,7 @@ class TruckStatus(models.Model):
     class Meta:
         ordering = ['id']
         db_table = 'truck_statuses'
-        verbose_name_plural = 'Statuses'
+        verbose_name_plural = 'Truck Statuses'
 
 
 class LessorCompany(models.Model):
