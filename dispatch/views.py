@@ -4,12 +4,13 @@ from .models import DriverDispatcher
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, filters
-from fleet.models import Driver, CustomUser, Department
+from fleet.models import Driver, CustomUser
 from fleet.permissions import IsAdminUser, IsDispatchManager, IsUpdater, IsDispatch
 from fleet.serializers import DriverViewSerializer, UserListSerializer
 
 
 class DispatcherListViewSet(viewsets.ModelViewSet):
+
     def get_permissions(self):
         if self.request.method == 'GET':
             permission_classes = [IsAuthenticated]
@@ -19,18 +20,20 @@ class DispatcherListViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PUT', 'PATCH']:
-           return DriverDispatcherWriteSerializer
+            return DriverDispatcherWriteSerializer
         return DriverDispatcherViewSerializer
 
     def get_queryset(self):
         user = self.request.user
-        if user.department.name.lower() == 'dispatch':
+        user_company = user.company
+        user_department = user.department.name.lower()
+        if user_department == 'dispatch':
             return DriverDispatcher.objects.filter(dispatch=user)
-        elif user.department.name.lower() == 'management':
+        elif user_department == 'management':
             return DriverDispatcher.objects.all()
-        elif user.department.name.lower() in ['dispatch manager', 'updater']:
-            return DriverDispatcher.objects.filter(dispatch__company=user.company)
-        return None
+        elif user_department in ['dispatch manager', 'updater']:
+            return DriverDispatcher.objects.filter(dispatch__company=user_company)
+        return DriverDispatcher.objects.none()
 
 
 class DriverByCompanyView(generics.ListAPIView):
@@ -51,14 +54,10 @@ class UsersByCompanyView(generics.ListAPIView):
     serializer_class = UserListSerializer
 
     def get_queryset(self):
-        is_active_dispatch = CustomUser.objects.filter(deparment__name__exact='dispatch',
-                                                       is_active=True)
+        company = self.request.user.company
         if self.request.user.department.name.lower() == 'management':
             return CustomUser.objects.all()
         elif self.request.user.department.name.lower() in ['dispatch manager', 'updater']:
-            return is_active_dispatch.filter(company=self.request.user.company)
+            return CustomUser.objects.filter(company=company)
         else:
             return None
-
-
-
