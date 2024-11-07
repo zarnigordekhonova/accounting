@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from fleet.serializers import UserListSerializer
+from fleet.models import CustomUser
 from fleet.views import CustomPagination
 from .models import (Facility, FacilityHistory, Broker, BrokerHistory, LoadProcess,
                      Status, Load, LoadHistory, LoadFile, LoadStop)
@@ -46,12 +48,6 @@ class FacilityHistoryViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAdminUser | IsDispatch | IsDispatchManager | IsUpdater | IsBilling]
         return [permission() for permission in permission_classes]
-
-    def perform_create(self, serializer):
-        serializer.save(changed_by=self.request.user)
-
-    def perform_update(self, serializer):
-        serializer.save(changed_by=self.request.user)
 
 
 class FacilitiesViewSet(viewsets.ModelViewSet):
@@ -210,7 +206,7 @@ class LoadProcessesViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [IsAdminUser | IsDispatch | IsDispatchManager | IsUpdater | IsBilling]
+            permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
 
 
@@ -226,7 +222,7 @@ class StatusesViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [IsAdminUser | IsDispatch | IsDispatchManager | IsUpdater | IsBilling]
+            permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
 
 
@@ -244,12 +240,6 @@ class LoadHistoryViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAdminUser | IsDispatch | IsDispatchManager | IsUpdater | IsBilling]
         return [permission() for permission in permission_classes]
-
-    def perform_create(self, serializer):
-        serializer.save(changed_by=self.request.user)
-
-    def perform_update(self, serializer):
-        serializer.save(changed_by=self.request.user)
 
 
 class LoadFilesViewSet(viewsets.ModelViewSet):
@@ -309,3 +299,15 @@ class LoadByIdAPIView(generics.ListAPIView):
     def get_queryset(self):
         load = self.kwargs.get('pk')
         return LoadHistory.objects.filter(load=load)
+
+
+class BookedByListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserListSerializer
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(
+            department__name__iexact='dispatch',
+            company__name=self.request.user.company.name
+        )
+
