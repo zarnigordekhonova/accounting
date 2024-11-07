@@ -38,12 +38,12 @@ class DriverByCompanyView(generics.ListAPIView):
     serializer_class = DriverViewSerializer
 
     def get_queryset(self):
-        company = self.request.user.company
+        company = self.request.user.company.name
         active_drivers = Driver.objects.filter(status__name__iexact='active')
         if self.request.user.department.name.lower() == 'management':
             return Driver.objects.all()
         else:
-            return active_drivers.filter(company=company)
+            return active_drivers.filter(company__name=company)
 
 
 class UsersByCompanyView(generics.ListAPIView):
@@ -51,11 +51,11 @@ class UsersByCompanyView(generics.ListAPIView):
     serializer_class = UserListSerializer
 
     def get_queryset(self):
-        company = self.request.user.company
+        company = self.request.user.company.name
         if self.request.user.department.name.lower() == 'management':
             return CustomUser.objects.all()
         else:
-            return CustomUser.objects.filter(company=company)
+            return CustomUser.objects.filter(company__name=company)
 
 
 
