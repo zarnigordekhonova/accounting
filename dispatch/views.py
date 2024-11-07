@@ -39,10 +39,11 @@ class DriverByCompanyView(generics.ListAPIView):
 
     def get_queryset(self):
         company = self.request.user.company
+        active_drivers = Driver.objects.filter(status__name__iexact='active')
         if self.request.user.department.name.lower() == 'management':
             return Driver.objects.all()
         else:
-            return Driver.objects.filter(company=company)
+            return active_drivers.filter(company=company)
 
 
 class UsersByCompanyView(generics.ListAPIView):
