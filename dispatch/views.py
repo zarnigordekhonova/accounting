@@ -26,7 +26,7 @@ class DispatcherListViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.department.name.lower() == 'dispatch':
             return DriverDispatcher.objects.filter(dispatch=user)
-        if user.department.name.lower() == 'management':
+        elif user.department.name.lower() == 'management':
             return DriverDispatcher.objects.all()
         elif user.department.name.lower() in ['dispatch_manager', 'updater']:
             return DriverDispatcher.objects.filter(company=user.company.name)
@@ -55,19 +55,6 @@ class UsersByCompanyView(generics.ListAPIView):
             return CustomUser.objects.all()
         else:
             return CustomUser.objects.filter(company=company)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
