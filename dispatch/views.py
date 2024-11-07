@@ -50,12 +50,16 @@ class UsersByCompanyView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserListSerializer
 
+
+
     def get_queryset(self):
         company = self.request.user.company.name
         if self.request.user.department.name.lower() == 'management':
             return CustomUser.objects.all()
+        elif self.request.user.department.name.lower() in ['dispatch_manager', 'updater']:
+            return DriverDispatcher.objects.filter(company=self.request.user.company.name)
         else:
-            return CustomUser.objects.filter(company__name=company)
+            return None
 
 
 
