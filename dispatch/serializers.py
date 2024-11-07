@@ -15,7 +15,7 @@ class DriverDispatcherViewSerializer(serializers.ModelSerializer):
             return {
                 "id": obj.driver.id,
                 "name": obj.driver.full_name,
-                "company": obj.driver.company
+                "company": obj.driver.company.name
             }
         return None
 
@@ -24,7 +24,7 @@ class DriverDispatcherViewSerializer(serializers.ModelSerializer):
             return {
                 "id": obj.dispatch.id,
                 "name": obj.dispatch.name,
-                "company": obj.dispatch.company
+                "company": obj.dispatch.company.name
             }
         return None
 
